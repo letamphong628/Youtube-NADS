@@ -1,0 +1,7 @@
+build_termux/
+*.apk
+*.keystore
+.gradle/
+captures/
+.externalNativeBuild/
+.cxx/

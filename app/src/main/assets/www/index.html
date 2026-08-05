@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YouTube NADS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #000000; color: #ffffff; height: 100vh; overflow: hidden; }
+
+        .icon-svg { width: 22px; height: 22px; stroke: #ffffff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .setup-screen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #000000; z-index: 99999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 24px; text-align: center;
+        }
+
+        .setup-step { display: none; width: 100%; max-width: 380px; }
+        .setup-step.active { display: flex; flex-direction: column; align-items: center; animation: fadeInScale 0.4s ease-out forwards; }
+
+        .btn-white {
+            background: #ffffff; color: #000000; border: none;
+            padding: 12px 32px; border-radius: 30px; font-weight: 700;
+            font-size: 0.95rem; cursor: pointer; margin: 8px;
+        }
+
+        .btn-grey {
+            background: rgba(255, 255, 255, 0.15); color: #ffffff; border: none;
+            padding: 12px 32px; border-radius: 30px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer; margin: 8px;
+        }
+
+        .terms-box {
+            background: #121212; border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px; padding: 14px; max-height: 180px; overflow-y: auto;
+            text-align: left; font-size: 0.8rem; color: #ccc; margin: 16px 0; line-height: 1.4;
+        }
+
+        .app-container { width: 100%; height: 100vh; display: flex; flex-direction: column; }
+        
+        .header-bar {
+            height: 52px; background: #000000; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 16px;
+        }
+
+        .logo-box { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.1rem; }
+        .yt-frame { flex: 1; border: none; width: 100%; height: calc(100vh - 110px); }
+
+        .bottom-nav {
+            position: fixed; bottom: 12px; left: 12px; right: 12px; height: 58px;
+            background: rgba(2, 132, 199, 0.22);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(56, 189, 248, 0.4);
+            border-radius: 30px; display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; background: none; border: none;
+            color: #888; font-size: 0.65rem; gap: 3px; cursor: pointer;
+        }
+
+        .nav-item.active { color: #ffffff; }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY SETUP TIZEN OS -->
+    <div class="setup-screen" id="setupScreen">
+        <div class="setup-step active" id="step0">
+            <svg class="icon-svg" style="width:64px; height:64px;" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="15" rx="4"/><polygon points="10 8 16 12 10 16"/></svg>
+            <h1 style="margin-top:16px;">Xin chào</h1>
+            <p style="color:#aaa; margin:12px 0 24px; font-size:0.9rem;">Hãy thiết lập 1 vài thứ để sử dụng ứng dụng 1 cách tốt nhất!</p>
+            <div>
+                <button class="btn-white" onclick="nextStep(1)">Bắt đầu</button>
+                <button class="btn-grey" onclick="finishSetup()">Để sau</button>
+            </div>
+        </div>
+
+        <div class="setup-step" id="step1">
+            <h2>1. Điều khoản dịch vụ</h2>
+            <div class="terms-box">
+                <b>DỊCH VỤ CỦA YOUTUBE / YOUTUBE TERMS OF SERVICE</b><br><br>
+                1. Bằng việc sử dụng ứng dụng YouTube NADS, bạn đồng ý tuân thủ các quy định Dịch vụ của Google & YouTube.<br>
+                2. Hệ thống hỗ trợ Tự động chặn Quảng cáo, Phát Nền và PIP.<br>
+            </div>
+            <label style="font-size:0.85rem; display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                <input type="checkbox" id="chkTerms" onchange="toggleTermsBtn()"> Tôi đồng ý với Điều Khoản
+            </label>
+            <button class="btn-white" id="btnTermsNext" style="opacity:0.4;" disabled onclick="nextStep(2)">Tiếp theo</button>
+        </div>
+
+        <div class="setup-step" id="step2">
+            <svg class="icon-svg" style="width:56px; height:56px;" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <h2 style="margin-top:16px;">2. Thêm Tài Khoản</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin:12px 0;">Đăng nhập tài khoản Google / YouTube chính thức của bạn.</p>
+            <button class="btn-white" onclick="loginGoogle()">Thêm tài khoản (Google)</button>
+            <button class="btn-grey" onclick="nextStep(3)">Để sau</button>
+        </div>
+
+        <div class="setup-step" id="step3">
+            <svg class="icon-svg" style="width:64px; height:64px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <h2 style="margin-top:16px;">Bạn đã hoàn thành!</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin:12px 0 24px;">Hãy trải nghiệm ứng dụng ngay nhé!</p>
+            <button class="btn-white" onclick="finishSetup()">Bắt đầu trải nghiệm</button>
+        </div>
+    </div>
+
+    <!-- CỬA SỔ YOUTUBE THẬT CHẠY 100% -->
+    <div class="app-container">
+        <div class="header-bar">
+            <div class="logo-box">
+                <svg class="icon-svg" style="width:20px; height:20px;" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="4"/><polygon points="10 8 16 12 10 16"/></svg>
+                <span>YouTube <span style="color:#ef4444;">NADS</span></span>
+            </div>
+            <div style="display:flex; gap:16px;">
+                <svg class="icon-svg" onclick="navTo('https://m.youtube.com/results?search_query=')" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                <svg class="icon-svg" onclick="loginGoogle()" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+        </div>
+
+        <!-- LOAD TRỰC TIẾP YOUTUBE CỦA GOOGLE -->
+        <iframe class="yt-frame" id="ytFrame" src="https://m.youtube.com"></iframe>
+
+        <!-- THANH BOTTOM NAV LIQUID GLASS -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="navTo('https://m.youtube.com')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span>Trang chủ</span>
+            </button>
+            <button class="nav-item" onclick="navTo('https://m.youtube.com/shorts')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Shorts</span>
+            </button>
+            <button class="nav-item" onclick="navTo('https://m.youtube.com/upload')">
+                <svg class="icon-svg" style="width:28px; height:28px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+            </button>
+            <button class="nav-item" onclick="navTo('https://m.youtube.com/feed/subscriptions')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M4 11a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z"/><path d="M4 6h16"/></svg>
+                <span>Đăng ký</span>
+            </button>
+            <button class="nav-item" onclick="navTo('https://m.youtube.com/feed/you')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Bạn</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function nextStep(step) {
+            document.querySelectorAll(".setup-step").forEach(s => s.classList.remove("active"));
+            document.getElementById("step" + step).classList.add("active");
+        }
+
+        function toggleTermsBtn() {
+            var chk = document.getElementById("chkTerms");
+            var btn = document.getElementById("btnTermsNext");
+            btn.disabled = !chk.checked;
+            btn.style.opacity = chk.checked ? "1" : "0.4";
+        }
+
+        function loginGoogle() {
+            document.getElementById("ytFrame").src = "https://accounts.google.com/ServiceLogin?service=youtube";
+            finishSetup();
+        }
+
+        function navTo(url) {
+            document.getElementById("ytFrame").src = url;
+        }
+
+        function finishSetup() {
+            document.getElementById("setupScreen").style.display = "none";
+        }
+    </script>
+</body>
+</html>
